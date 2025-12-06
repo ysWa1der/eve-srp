@@ -14,11 +14,15 @@ git checkout-index -a -f --prefix="${DIR}"/build/eve-srp/
   echo "EVE_SRP_SSO_REDIRECT_URI="
 } > "${DIR}"/build/eve-srp/config/.env
 
+# Read EVE_SRP_ENV from config/.env
+EVE_SRP_ENV=$(grep "^EVE_SRP_ENV=" "${DIR}"/config/.env | cut -d '=' -f 2)
+export EVE_SRP_ENV
+
 # Build
 export UID
 docker compose exec -u $UID eve_srp_php sh -c "cd build/eve-srp && composer install --no-dev --optimize-autoloader --no-interaction"
 docker compose exec -u $UID eve_srp_php sh -c "cd build/eve-srp && bin/doctrine orm:generate-proxies"
-docker compose exec -u $UID eve_srp_node sh -c "cd build/eve-srp && npm ci && npm run build"
+docker compose exec -u $UID -e EVE_SRP_ENV eve_srp_node sh -c "cd build/eve-srp && npm ci && npm run build"
 
 # Remove unnecessary files
 rm "${DIR}"/build/eve-srp/.editorconfig

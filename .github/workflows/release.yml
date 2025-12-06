@@ -35,6 +35,7 @@ jobs:
           EVE_SRP_SSO_CLIENT_ID:
           EVE_SRP_SSO_CLIENT_SECRET:
           EVE_SRP_SSO_REDIRECT_URI:
+          EVE_SRP_ENV: 'prod'
       - name: Get the version
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - name: Create archive

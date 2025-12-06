@@ -5,9 +5,11 @@ const CompressionPlugin = require('compression-webpack-plugin');
 const LicenseWebpackPlugin = require('license-webpack-plugin').LicenseWebpackPlugin;
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = (env, argv) => {
     const devMode = argv.mode !== 'production';
+    const isProdEnv = process.env.EVE_SRP_ENV === 'prod';
     const config = {
         entry: './resources',
         output: {
@@ -44,7 +46,29 @@ module.exports = (env, argv) => {
         optimization: {
             runtimeChunk: 'single',
             minimizer: [
-                new CssMinimizerPlugin()
+                new CssMinimizerPlugin(),
+                new TerserPlugin({
+                    terserOptions: {
+                        compress: !devMode && isProdEnv ? {
+                            drop_console: true,
+                            drop_debugger: true,
+                            pure_funcs: ['console.log', 'console.info', 'console.debug'],
+                            passes: 2,
+                        } : {
+                            passes: 1,
+                        },
+                        mangle: !devMode && isProdEnv ? {
+                            toplevel: true,
+                            properties: {
+                                regex: /^_/,
+                            },
+                        } : true,
+                        format: {
+                            comments: false,
+                        },
+                    },
+                    extractComments: false,
+                }),
             ]
         },
     };
