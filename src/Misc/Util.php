@@ -8,8 +8,11 @@ class Util
 {
     const ONE_MILLION = 1000000;
 
-    public static function formatMillions(int $number, bool $includeM = true, int $decimals = 2): string
+    public static function formatMillions(?int $number, bool $includeM = true, int $decimals = 2): string
     {
+        if ($number === null) {
+            return '0' . ($includeM ? 'm' : '');
+        }
         return rtrim(rtrim(number_format($number/self::ONE_MILLION, $decimals), '0'), '.') . ($includeM ? 'm' : '');
     }
 
