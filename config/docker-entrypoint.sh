@@ -14,7 +14,10 @@ chown -R www-data:www-data /app/storage/logs
 # Install composer dependencies if vendor directory doesn't exist or is empty
 if [ ! -d "/app/vendor" ] || [ -z "$(ls -A /app/vendor 2>/dev/null)" ]; then
     echo "Installing composer dependencies..."
-    su-exec www-data composer install --no-interaction --optimize-autoloader
+    # Run composer as root to avoid permission issues on Synology NAS
+    composer install --no-interaction --optimize-autoloader
+    # Fix ownership after installation
+    chown -R www-data:www-data /app/vendor
 fi
 
 # Wait for database to be ready
@@ -33,13 +36,14 @@ done
 # Generate Doctrine proxies if not exists
 if [ ! -d "/app/storage/doctrine" ] || [ -z "$(ls -A /app/storage/doctrine 2>/dev/null)" ]; then
     echo "Generating Doctrine proxy classes..."
-    su-exec www-data php /app/bin/doctrine orm:generate-proxies || echo "Warning: Failed to generate proxies"
+    php /app/bin/doctrine orm:generate-proxies || echo "Warning: Failed to generate proxies"
+    chown -R www-data:www-data /app/storage/doctrine
 fi
 
 # Run database migrations
 if [ -f "/app/vendor/bin/doctrine-migrations" ]; then
     echo "Running database migrations..."
-    su-exec www-data php /app/vendor/bin/doctrine-migrations migrations:migrate --no-interaction || echo "Warning: Migration failed"
+    php /app/vendor/bin/doctrine-migrations migrations:migrate --no-interaction || echo "Warning: Migration failed"
 fi
 
 # Execute the original command (php-fpm)

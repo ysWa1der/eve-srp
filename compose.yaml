@@ -40,6 +40,7 @@ services:
     working_dir: /app
     networks: [eve-srp]
     dns: [8.8.8.8]
+    user: "0:0"  # Run as root for Synology NAS compatibility
 
   eve_srp_http:
     container_name: eve_srp_http
