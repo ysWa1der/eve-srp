@@ -126,6 +126,7 @@ class Bootstrap
 
         $app->add(new Session([
             'name' => 'eve_srp_session',
+            'lifetime' => '30 minutes',
             'httponly' => true,
             'secure' => $setting['SESSION_SECURE'] === '1',
             'samesite' => 'Lax',
