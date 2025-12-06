@@ -128,6 +128,7 @@ class Bootstrap
             'name' => 'eve_srp_session',
             'httponly' => true,
             'secure' => $setting['SESSION_SECURE'] === '1',
+            'samesite' => $setting['APP_ENV'] === 'prod' ? 'Strict' : 'Lax',
             'autorefresh' => true,
         ]));
 
