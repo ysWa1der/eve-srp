@@ -34,32 +34,54 @@ class EsiProvider implements ProviderInterface
     {
         $userData = $this->apiService->getJsonData("$this->esiBaseUrl/characters/$eveCharacterId/");
 
-        $submitterAlliances = explode(',', (string)($_ENV['EVE_SRP_PROVIDER_ESI_SUBMITTER_ALLIANCES'] ?? ''));
-        $submitterCorporations = explode(',', (string)($_ENV['EVE_SRP_PROVIDER_ESI_SUBMITTER_CORPORATIONS'] ?? ''));
-        $reviewChars = explode(',', (string)($_ENV['EVE_SRP_PROVIDER_ESI_REVIEW_CHARACTERS'] ?? ''));
-        $reviewCorps = explode(',', (string)($_ENV['EVE_SRP_PROVIDER_ESI_REVIEW_CORPORATIONS'] ?? ''));
-        $payChars = explode(',', (string)($_ENV['EVE_SRP_PROVIDER_ESI_PAY_CHARACTERS'] ?? ''));
-        $payCorps = explode(',', (string)($_ENV['EVE_SRP_PROVIDER_ESI_PAY_CORPORATIONS'] ?? ''));
-        $adminChars = explode(',', (string)($_ENV['EVE_SRP_PROVIDER_ESI_ADMIN_CHARACTERS'] ?? ''));
-        $globalAdminChars = explode(',', (string)($_ENV['EVE_SRP_PROVIDER_ESI_GLOBAL_ADMIN_CHARACTERS'] ?? ''));
+        // Helper function to parse comma-separated IDs
+        $parseIds = function(string $value): array {
+            $trimmed = trim($value);
+            if ($trimmed === '') {
+                return [];
+            }
+            return array_filter(array_map('trim', explode(',', $trimmed)), function($v) {
+                return $v !== '';
+            });
+        };
+
+        $submitterAlliances = $parseIds((string)($_ENV['EVE_SRP_PROVIDER_ESI_SUBMITTER_ALLIANCES'] ?? ''));
+        $submitterCorporations = $parseIds((string)($_ENV['EVE_SRP_PROVIDER_ESI_SUBMITTER_CORPORATIONS'] ?? ''));
+        $reviewChars = $parseIds((string)($_ENV['EVE_SRP_PROVIDER_ESI_REVIEW_CHARACTERS'] ?? ''));
+        $reviewCorps = $parseIds((string)($_ENV['EVE_SRP_PROVIDER_ESI_REVIEW_CORPORATIONS'] ?? ''));
+        $payChars = $parseIds((string)($_ENV['EVE_SRP_PROVIDER_ESI_PAY_CHARACTERS'] ?? ''));
+        $payCorps = $parseIds((string)($_ENV['EVE_SRP_PROVIDER_ESI_PAY_CORPORATIONS'] ?? ''));
+        $adminChars = $parseIds((string)($_ENV['EVE_SRP_PROVIDER_ESI_ADMIN_CHARACTERS'] ?? ''));
+        $globalAdminChars = $parseIds((string)($_ENV['EVE_SRP_PROVIDER_ESI_GLOBAL_ADMIN_CHARACTERS'] ?? ''));
 
         $groups = [];
-        if (
-            in_array($userData->alliance_id, $submitterAlliances) ||
-            in_array($userData->corporation_id, $submitterCorporations)
-        ) {
+
+        // Check submitter (member) group
+        $hasAllianceMatch = isset($userData->alliance_id) && in_array((string)$userData->alliance_id, $submitterAlliances, true);
+        $hasCorpMatch = isset($userData->corporation_id) && in_array((string)$userData->corporation_id, $submitterCorporations, true);
+        if ($hasAllianceMatch || $hasCorpMatch) {
             $groups[] = 'member';
         }
-        if (in_array($eveCharacterId, $reviewChars) || in_array($userData->corporation_id, $reviewCorps)) {
+
+        // Check review group
+        if (in_array((string)$eveCharacterId, $reviewChars, true) ||
+            (isset($userData->corporation_id) && in_array((string)$userData->corporation_id, $reviewCorps, true))) {
             $groups[] = 'review';
         }
-        if (in_array($eveCharacterId, $payChars) || in_array($userData->corporation_id, $payCorps)) {
+
+        // Check pay group
+        if (in_array((string)$eveCharacterId, $payChars, true) ||
+            (isset($userData->corporation_id) && in_array((string)$userData->corporation_id, $payCorps, true))) {
             $groups[] = 'pay';
         }
-        if (in_array($eveCharacterId, $adminChars)) {
+
+        // Check admin group
+        if (in_array((string)$eveCharacterId, $adminChars, true)) {
             $groups[] = 'admin';
         }
-        if (in_array($eveCharacterId, $globalAdminChars)) {
+
+        // Check global admin group
+        if (in_array((string)$eveCharacterId, $globalAdminChars, true)) {
             $groups[] = 'global-admin';
         }
 

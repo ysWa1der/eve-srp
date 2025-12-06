@@ -100,6 +100,19 @@ class AuthController
             return $response->withHeader('Location', '/login')->withStatus(302);
         }
 
+        // Check if user has any groups (if required)
+        $requireGroupForLogin = filter_var(
+            $_ENV['EVE_SRP_REQUIRE_GROUP_FOR_LOGIN'] ?? 'false',
+            FILTER_VALIDATE_BOOLEAN
+        );
+        if ($requireGroupForLogin && empty($user->getExternalGroups())) {
+            $this->flashMessage->addMessage(
+                'Access denied. You do not have the required permissions to access this application.',
+                FlashMessage::TYPE_DANGER
+            );
+            return $response->withHeader('Location', '/login')->withStatus(302);
+        }
+
         $this->session->set('userId', $user->getId());
         $this->session->set(CSRFTokenMiddleware::CSRF_KEY_NAME, bin2hex(random_bytes(32)));
 
