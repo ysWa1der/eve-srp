@@ -47,19 +47,13 @@ services:
   eve_srp_php:
     container_name: eve_srp_php
     build:
-      context: docker/php
-      dockerfile: Dockerfile-php84-fpm
-      #dockerfile: Dockerfile-php81-fpm
-      #dockerfile: Dockerfile-php82-fpm
-      #dockerfile: Dockerfile-php83-fpm
-    # For production: replace build with image
-    # image: ${DOCKER_IMAGE:-youruser/eve-srp:latest}
+      context: .
+      dockerfile: docker/php/Dockerfile-php84-fpm
     restart: unless-stopped
     depends_on:
       eve_srp_db:
         condition: service_healthy
     volumes: ["./app:/app"]
-    working_dir: /app
     networks: [eve-srp]
     dns: [8.8.8.8]
     environment:
