@@ -1,0 +1,119 @@
+# ============================================
+# .dockerignore for EVE-SRP
+# ============================================
+# Reduces image size and build time by excluding unnecessary files
+
+# ----------------------------------------------
+# Git
+# ----------------------------------------------
+.git
+.gitignore
+.gitattributes
+
+# ----------------------------------------------
+# Documentation
+# ----------------------------------------------
+*.md
+README.md
+LICENSE
+DOCKER-SETUP.md
+PROJECT-STRUCTURE.md
+DOCKER-HUB.md
+
+# ----------------------------------------------
+# Environment and Config
+# ----------------------------------------------
+.env
+.env.local
+.env.*.local
+.env.example
+
+# ----------------------------------------------
+# IDE and Editor
+# ----------------------------------------------
+.idea
+.vscode
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ----------------------------------------------
+# Node.js
+# ----------------------------------------------
+frontend/node_modules
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ----------------------------------------------
+# Build Artifacts (will be generated during build)
+# ----------------------------------------------
+app/storage/compilation_cache/*
+app/storage/doctrine/*
+app/storage/logs/*
+!app/storage/.gitkeep
+
+# Keep .gitkeep files
+!**/.gitkeep
+
+# ----------------------------------------------
+# PHP
+# ----------------------------------------------
+app/vendor
+app/.composer
+
+# ----------------------------------------------
+# Database
+# ----------------------------------------------
+.db
+.db/*
+*.sql
+*.sqlite
+
+# ----------------------------------------------
+# Legacy Code
+# ----------------------------------------------
+legacy
+legacy/*
+
+# ----------------------------------------------
+# Docker
+# ----------------------------------------------
+# Don't include development compose files in production image
+compose.yaml
+docker-compose.yml
+docker-compose.*.yml
+compose.production.yaml
+
+# ----------------------------------------------
+# CI/CD
+# ----------------------------------------------
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# ----------------------------------------------
+# Testing
+# ----------------------------------------------
+tests
+phpunit.xml
+.phpunit.result.cache
+
+# ----------------------------------------------
+# Logs
+# ----------------------------------------------
+*.log
+logs
+*.log.*
+
+# ----------------------------------------------
+# Temporary Files
+# ----------------------------------------------
+tmp
+temp
+*.tmp
+*.bak
+*.swp

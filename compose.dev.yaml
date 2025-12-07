@@ -5,9 +5,9 @@ services:
     restart: unless-stopped
     volumes: ["./.db/mariadb:/var/lib/mysql"]
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-eve_srp}
-      MYSQL_USER: ${DB_USER:-eve_srp}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-eve_srp}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-change_this_root_password_123!}
+      MYSQL_USER: ${DB_USER:-eve_srp_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-change_this_secure_password_456!}
       MYSQL_DATABASE: ${DB_NAME:-eve_srp}
     ports: ["33061:3306"]
     networks: [eve-srp]
@@ -24,7 +24,7 @@ services:
     restart: unless-stopped
     volumes: ["./.db/postgresql:/var/lib/postgresql/data"]
     environment:
-      POSTGRES_PASSWORD: eve_srp
+      POSTGRES_PASSWORD: ${DB_ROOT_PASSWORD:-change_this_root_password_123!}
     ports: ["55432:5432"]
     networks: [eve-srp]
     healthcheck:
@@ -64,11 +64,11 @@ services:
     dns: [8.8.8.8]
     environment:
       # Database Connection
-      EVE_SRP_DB_URL: mysql://${DB_USER:-eve_srp}:${DB_PASSWORD:-eve_srp}@eve_srp_db/${DB_NAME:-eve_srp}
-      # For PostgreSQL: postgres://postgres:${DB_PASSWORD:-eve_srp}@eve_srp_db_postgres/postgres
+      EVE_SRP_DB_URL: mysql://${DB_USER:-eve_srp_user}:${DB_PASSWORD:-change_this_secure_password_456!}@eve_srp_db/${DB_NAME:-eve_srp}
+      # For PostgreSQL: postgres://postgres:${DB_ROOT_PASSWORD:-change_this_root_password_123!}@eve_srp_db_postgres/postgres
 
       # Database for unit tests
-      EVE_SRP_DB_TEST_URL: mysql://root:${DB_ROOT_PASSWORD:-eve_srp}@eve_srp_db/eve_srp_test
+      EVE_SRP_DB_TEST_URL: mysql://root:${DB_ROOT_PASSWORD:-change_this_root_password_123!}@eve_srp_db/eve_srp_test
 
       # EVE SSO Configuration
       EVE_SRP_SSO_CLIENT_ID: ${SSO_CLIENT_ID:-}
