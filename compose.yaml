@@ -5,10 +5,10 @@ services:
     restart: unless-stopped
     volumes: ["./.db/mariadb:/var/lib/mysql"]
     environment:
-      MYSQL_ROOT_PASSWORD: eve_srp
-      MYSQL_USER: eve_srp
-      MYSQL_PASSWORD: eve_srp
-      MYSQL_DATABASE: eve_srp
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-eve_srp}
+      MYSQL_USER: ${DB_USER:-eve_srp}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-eve_srp}
+      MYSQL_DATABASE: ${DB_NAME:-eve_srp}
     ports: ["33061:3306"]
     networks: [eve-srp]
     healthcheck:
@@ -39,25 +39,81 @@ services:
     image: node:20.14.0-alpine
     restart: unless-stopped
     tty: true
-    volumes: [".:/app"]
+    volumes:
+      - "./frontend:/app"
+      - "./app/web/dist:/app/web/dist"  # Share build output with PHP/Nginx
     working_dir: /app
 
   eve_srp_php:
     container_name: eve_srp_php
     build:
-      context: config
-      #dockerfile: dockerfile-php81-fpm
-      #dockerfile: dockerfile-php82-fpm
-      #dockerfile: dockerfile-php83-fpm
-      dockerfile: dockerfile-php84-fpm
+      context: docker/php
+      dockerfile: Dockerfile-php84-fpm
+      #dockerfile: Dockerfile-php81-fpm
+      #dockerfile: Dockerfile-php82-fpm
+      #dockerfile: Dockerfile-php83-fpm
+    # For production: replace build with image
+    # image: ${DOCKER_IMAGE:-youruser/eve-srp:latest}
     restart: unless-stopped
     depends_on:
       eve_srp_db:
         condition: service_healthy
-    volumes: [".:/app"]
+    volumes: ["./app:/app"]
     working_dir: /app
     networks: [eve-srp]
     dns: [8.8.8.8]
+    environment:
+      # Database Connection
+      EVE_SRP_DB_URL: mysql://${DB_USER:-eve_srp}:${DB_PASSWORD:-eve_srp}@eve_srp_db/${DB_NAME:-eve_srp}
+      # For PostgreSQL: postgres://postgres:${DB_PASSWORD:-eve_srp}@eve_srp_db_postgres/postgres
+
+      # Database for unit tests
+      EVE_SRP_DB_TEST_URL: mysql://root:${DB_ROOT_PASSWORD:-eve_srp}@eve_srp_db/eve_srp_test
+
+      # EVE SSO Configuration
+      EVE_SRP_SSO_CLIENT_ID: ${SSO_CLIENT_ID:-}
+      EVE_SRP_SSO_CLIENT_SECRET: ${SSO_CLIENT_SECRET:-}
+      EVE_SRP_SSO_REDIRECT_URI: ${SSO_REDIRECT_URI:-http://localhost:9000/auth}
+
+      # Provider Configuration
+      EVE_SRP_PROVIDER: ${PROVIDER:-EveSrp\Provider\Implementation\EsiProvider}
+      EVE_SRP_ROLE_GLOBAL_ADMIN: ${ROLE_GLOBAL_ADMIN:-global-admin}
+
+      # Application Environment
+      EVE_SRP_ENV: ${APP_ENV:-prod}
+      EVE_SRP_SESSION_SECURE: ${SESSION_SECURE:-0}
+      EVE_SRP_REQUIRE_GROUP_FOR_LOGIN: ${REQUIRE_GROUP:-false}
+
+      # Customization
+      EVE_SRP_APP_TITLE: ${APP_TITLE:-Ship Replacement Program}
+      EVE_SRP_APP_LOGO: ${APP_LOGO:-/static/logo-srp.png}
+      EVE_SRP_APP_LOGO_ALT: ${APP_LOGO_ALT:-SRP Logo}
+      EVE_SRP_HTTP_USER_AGENT: ${HTTP_USER_AGENT:-EVE-SRP (https://github.com/tkhamez/eve-srp)}
+      EVE_SRP_ZKILLBOARD_URL: ${ZKILLBOARD_URL:-https://zkillboard.com}
+
+      # Modifier Calculation
+      EVE_SRP_MODIFIER_CALCULATION: ${MODIFIER_CALCULATION:-sequentially}
+
+      # Optional Texts
+      EVE_SRP_LOGIN_HINT: ${LOGIN_HINT:-}
+      EVE_SRP_FOOTER_TEXT: ${FOOTER_TEXT:-}
+      EVE_SRP_SUBMIT_DETAILS_PLACEHOLDER: ${SUBMIT_DETAILS_PLACEHOLDER:-}
+      EVE_SRP_SUBMIT_DETAILS_HELP: ${SUBMIT_DETAILS_HELP:-}
+
+      # Neucore Provider (if using NeuCoreProvider)
+      EVE_SRP_PROVIDER_NEUCORE_DOMAIN: ${NEUCORE_DOMAIN:-}
+      EVE_SRP_PROVIDER_NEUCORE_APP_ID: ${NEUCORE_APP_ID:-}
+      EVE_SRP_PROVIDER_NEUCORE_APP_SECRET: ${NEUCORE_APP_SECRET:-}
+
+      # ESI Provider - Group Configuration (comma-separated EVE IDs)
+      EVE_SRP_PROVIDER_ESI_SUBMITTER_ALLIANCES: ${ESI_SUBMITTER_ALLIANCES:-}
+      EVE_SRP_PROVIDER_ESI_SUBMITTER_CORPORATIONS: ${ESI_SUBMITTER_CORPORATIONS:-}
+      EVE_SRP_PROVIDER_ESI_REVIEW_CHARACTERS: ${ESI_REVIEW_CHARACTERS:-}
+      EVE_SRP_PROVIDER_ESI_REVIEW_CORPORATIONS: ${ESI_REVIEW_CORPORATIONS:-}
+      EVE_SRP_PROVIDER_ESI_PAY_CHARACTERS: ${ESI_PAY_CHARACTERS:-}
+      EVE_SRP_PROVIDER_ESI_PAY_CORPORATIONS: ${ESI_PAY_CORPORATIONS:-}
+      EVE_SRP_PROVIDER_ESI_ADMIN_CHARACTERS: ${ESI_ADMIN_CHARACTERS:-}
+      EVE_SRP_PROVIDER_ESI_GLOBAL_ADMIN_CHARACTERS: ${ESI_GLOBAL_ADMIN_CHARACTERS:-}
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 9000 || exit 1"]
       interval: 60s
@@ -72,7 +128,9 @@ services:
     depends_on:
       eve_srp_php:
         condition: service_healthy
-    volumes: [".:/app", "./config/docker-nginx.conf:/etc/nginx/conf.d/default.conf"]
+    volumes:
+      - "./app/web:/app/web:ro"
+      - "./docker/nginx/conf/default.conf:/etc/nginx/conf.d/default.conf:ro"
     ports: ["9000:80"]
     networks: [eve-srp]
     healthcheck:

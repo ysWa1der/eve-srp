@@ -1,16 +1,23 @@
-# app
-/build
-/config/.env
-/storage/*
-!/storage/.gitkeep
-/node_modules
-/vendor
-/web/dist
+# Environment files
+/.env
 
-# docker
+# App (PHP application)
+/app/config/.env
+/app/storage/*
+!/app/storage/.gitkeep
+/app/vendor
+/app/web/dist
+
+# Frontend (Node.js)
+/frontend/node_modules
+
+# Docker
 /.db
-/.composer
+
+# Build artifacts
+/build
 
 # IDEs
 /.idea
 .claude
+

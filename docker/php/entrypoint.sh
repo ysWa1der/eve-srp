@@ -1,20 +1,20 @@
 #!/bin/sh
 set -e
 
-# Create required directories
+# Create required directories with proper permissions
 echo "Creating required directories..."
 mkdir -p /app/storage/doctrine
 mkdir -p /app/storage/compilation_cache
 mkdir -p /app/storage/logs
-mkdir -p /app/vendor            # ← 추가: vendor 디렉터리 강제 생성
+mkdir -p /app/vendor
 mkdir -p /app/web/dist
 
-# Relax permissions on /app so composer can write into vendor
+# Fix permissions for all writable directories
 echo "Fixing permissions for /app..."
-chmod -R a+rwX /app/vendor /app/storage /app/web/dist
+chmod -R 777 /app/vendor /app/storage /app/web/dist 2>/dev/null || true
 
-# Set ownership for storage directories (웹 실행 계정 기준으로 유지)
-chown -R www-data:www-data /app/storage /app/web/dist || true
+# Set ownership for storage directories
+chown -R www-data:www-data /app/storage /app/web/dist 2>/dev/null || true
 
 # Install composer dependencies if vendor directory doesn't exist or is empty
 if [ ! -d "/app/vendor" ] || [ -z "$(ls -A /app/vendor 2>/dev/null)" ]; then
