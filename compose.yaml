@@ -2,6 +2,7 @@ services:
   eve_srp_db:
     container_name: eve_srp_db
     image: mariadb:10.11
+    restart: unless-stopped
     volumes: ["./.db/mariadb:/var/lib/mysql"]
     environment:
       MYSQL_ROOT_PASSWORD: eve_srp
@@ -10,19 +11,33 @@ services:
       MYSQL_DATABASE: eve_srp
     ports: ["33061:3306"]
     networks: [eve-srp]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   eve_srp_db_postgres:
     container_name: eve_srp_db_postgres
     image: postgres:13-alpine
+    restart: unless-stopped
     volumes: ["./.db/postgresql:/var/lib/postgresql/data"]
     environment:
       POSTGRES_PASSWORD: eve_srp
     ports: ["55432:5432"]
     networks: [eve-srp]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   eve_srp_node:
     container_name: eve_srp_node
     image: node:20.14.0-alpine
+    restart: unless-stopped
     tty: true
     volumes: [".:/app"]
     working_dir: /app
@@ -35,19 +50,37 @@ services:
       #dockerfile: dockerfile-php82-fpm
       #dockerfile: dockerfile-php83-fpm
       dockerfile: dockerfile-php84-fpm
-    depends_on: [eve_srp_db]
+    restart: unless-stopped
+    depends_on:
+      eve_srp_db:
+        condition: service_healthy
     volumes: [".:/app"]
     working_dir: /app
     networks: [eve-srp]
     dns: [8.8.8.8]
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 9000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 
   eve_srp_http:
     container_name: eve_srp_http
     image: nginx:1
-    depends_on: [eve_srp_php]
+    restart: unless-stopped
+    depends_on:
+      eve_srp_php:
+        condition: service_healthy
     volumes: [".:/app", "./config/docker-nginx.conf:/etc/nginx/conf.d/default.conf"]
     ports: ["9000:80"]
     networks: [eve-srp]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/index.php || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 networks:
   eve-srp:
