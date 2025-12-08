@@ -41,7 +41,6 @@ services:
     tty: true
     volumes:
       - "./frontend:/app"
-      - "./app/web/dist:/app/web/dist"  # Share build output with PHP/Nginx
     working_dir: /app
 
   eve_srp_php:

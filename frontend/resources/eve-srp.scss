@@ -22,12 +22,34 @@
 html {
     // for sticky footer
     position: relative;
-    min-height: 100%;
+    min-height: 100vh;
+    height: 100%;
 }
 
 body {
-    margin-bottom: calc(var(--srp-footer-height) + 19px);
+    min-height: 100vh;
+    margin-bottom: 0;
+    padding-bottom: calc(var(--srp-footer-height) + 19px);
     max-width: var(--srp-max-width);
+    position: relative;
+
+    // Background image with blur effect
+    &::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background-image: var(--bg-image);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        filter: blur(5px);
+        opacity: 0.3;
+    }
 }
 
 .srp-page-footer {
@@ -42,7 +64,6 @@ body {
     .eve {
         position: relative;
         z-index: 2;
-        background-color: var(--srp-bg-color);
     }
 
     .github {
@@ -94,6 +115,46 @@ a {
 }
 
 // Components
+
+// Navbar Layout - Center menu items
+.navbar {
+    .container-fluid {
+        position: relative;
+    }
+
+    .navbar-brand {
+        position: absolute;
+        left: 0;
+    }
+
+    .navbar-collapse {
+        justify-content: center;
+    }
+
+    .navbar-nav.mx-auto {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .navbar-nav.ms-auto {
+        margin-left: auto !important;
+        position: absolute;
+        right: 0;
+    }
+
+    // Make sure toggler doesn't overlap
+    .navbar-toggler {
+        z-index: 1;
+    }
+
+    // Responsive - remove absolute positioning on mobile
+    @media (max-width: 991.98px) {
+        .navbar-brand,
+        .navbar-nav.ms-auto {
+            position: static;
+        }
+    }
+}
 
 .srp-copy-text:hover {
     filter: brightness(0.7);

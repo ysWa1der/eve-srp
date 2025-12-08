@@ -97,6 +97,30 @@ class GlobalData
         return "<input type='hidden' name='$name' value='$token'>";
     }
 
+    public function backgroundImage(): string
+    {
+        // Rotate background image daily (1-6)
+        $dayOfYear = (int)date('z'); // 0-365
+        $imageNumber = ($dayOfYear % 6) + 1; // 1-6
+        return "bg{$imageNumber}.jpg";
+    }
+
+    public function mainCharacterId(): ?int
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return null;
+        }
+
+        foreach ($user->getCharacters() as $character) {
+            if ($character->getMain()) {
+                return $character->getId();
+            }
+        }
+
+        return null;
+    }
+
     private function getUser(): ?User
     {
         return $this->userService->getAuthenticatedUser();

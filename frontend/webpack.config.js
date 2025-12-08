@@ -2,6 +2,7 @@ const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const LicenseWebpackPlugin = require('license-webpack-plugin').LicenseWebpackPlugin;
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
@@ -13,7 +14,7 @@ module.exports = (env, argv) => {
     const config = {
         entry: './resources',
         output: {
-            path: path.resolve(__dirname, './web/dist'),
+            path: path.resolve(__dirname, '../app/web/dist'),
             filename: devMode ? '[name].js' : '[name].[chunkhash].js'
         },
         module: {
@@ -24,6 +25,12 @@ module.exports = (env, argv) => {
                     'css-loader',
                     'sass-loader',
                 ]
+            }, {
+                test: /\.(png|jpg|jpeg|gif|webp)$/i,
+                type: 'asset/resource',
+                generator: {
+                    filename: '[name].[hash][ext]'
+                }
             }]
         },
         plugins: [
@@ -41,6 +48,14 @@ module.exports = (env, argv) => {
                 filename: devMode ? '[name].css' : '[name].[fullhash].css',
             }),
             new CleanWebpackPlugin(),
+            new CopyWebpackPlugin({
+                patterns: [
+                    {
+                        from: 'resources/bg*.jpg',
+                        to: '[name][ext]',
+                    },
+                ],
+            }),
         ],
         devtool: devMode ? 'eval-cheap-source-map' : 'source-map',
         optimization: {

@@ -10,6 +10,11 @@
     {{ include('js.html') }}
     {{ include('css.html') }}
     <script src="/static/custom.js"></script>
+    <style>
+        :root {
+            --bg-image: url('/dist/{{ data.backgroundImage }}');
+        }
+    </style>
 </head>
 <body class="container-fluid bg-dark text-light">
     {% if data.userName %}
